@@ -1,0 +1,23 @@
+<launch>
+
+  <!-- Start Hector SLAM -->
+  <include file="$(find hector_slam_launch)/launch/tutorial.launch" />
+
+  <!-- Start the map server -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find robocop)/maps/map.yaml" />
+
+  <!-- Start move_base for autonomous navigation -->
+  <node name="move_base" pkg="move_base" type="move_base" output="screen">
+    <rosparam file="$(find robocop)/config/costmap_common_params.yaml" command="load" />
+    <rosparam file="$(find robocop)/config/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find robocop)/config/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find robocop)/config/base_local_planner_params.yaml" command="load" />
+  </node>
+
+  <!-- Start cmd_vel subscriber script to control the motors -->
+  <node name="cmd_vel_subscriber" pkg="robocop" type="cmd_vel_subscriber.py" output="screen" />
+
+  <!-- Start RViz for visualization -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robocop)/rviz_config/navigation.rviz" />
+
+</launch>

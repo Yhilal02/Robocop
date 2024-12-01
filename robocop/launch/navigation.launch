@@ -1,0 +1,40 @@
+<launch>
+
+<!-- Lidar Data Publisher Using RPLIDAR from Slamtec -->
+  <!-- Used for obstacle avoidance and mapping --> 
+  <!-- Publish: /scan -->
+  <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
+    <param name="serial_port"         type="string" value="/dev/ttyUSB0"/>
+    <param name="serial_baudrate"     type="int"    value="115200"/><!--A1/A2 -->
+    <!--param name="serial_baudrate"  type="int"    value="256000"--><!--A3 -->
+    <param name="frame_id"            type="string" value="laser"/>
+    <param name="inverted"            type="bool"   value="false"/>
+    <param name="angle_compensate"    type="bool"   value="true"/>
+  </node>  
+
+  <!-- Step 1: Run Hector SLAM to build the map -->
+  <include file="$(find hector_slam_launch)/launch/tutorial.launch" />
+
+  <!-- Step 2: Start map_saver -->
+  <node name="map_saver" pkg="map_server" type="map_saver" args="-f $(find robocop)/maps/my_map" />
+
+  <!-- Delay the next step until the map is built  -->
+  <param name="map_building_duration" type="int" value="60" /> <!-- Adjust time depending on mapping time -->
+
+  <!-- Step 3: Load the saved map and start move_base for autonomous navigation -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find robocop)/maps/my_map.yaml" />
+
+  <node name="move_base" pkg="move_base" type="move_base" output="screen">
+    <rosparam file="$(find robocop)/config/costmap_common_params.yaml" command="load" />
+    <rosparam file="$(find robocop)/config/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find robocop)/config/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find robocop)/config/base_local_planner_params.yaml" command="load" />
+  </node>
+
+  <!-- Start cmd_vel subscriber script to control the motors -->
+  <node name="cmd_vel_subscriber" pkg="robocop" type="cmd_vel_subscriber.py" output="screen" />/
+
+  <!-- Launch rviz to visualize the process -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robocop)/rviz_config/navigation.rviz" />
+
+</launch>

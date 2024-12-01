@@ -1,0 +1,7 @@
+base_local_planner:
+  max_vel_x: 0.3
+  min_vel_x: 0.1
+  max_rotational_vel: 1.0
+  min_in_place_rotational_vel: 0.4
+  acc_lim_x: 2.5
+  acc_lim_theta: 3.2
